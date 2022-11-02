@@ -3,6 +3,7 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const figlet = require('figlet');
 const cTable = require('console.table');
+const { sample } = require('rxjs');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3001;
@@ -42,7 +43,16 @@ const viewDepartments = () => {
 // view all roles
 
 const viewRoles = () => {
-    db.query('SELECT * FROM roles', function (err, results) {
+    const sqlQuery =
+        `SELECT r.id,
+        r.title,
+        r.salary,
+        d.department_name
+        FROM roles r
+        JOIN department d on d.id = r.department_id
+        ORDER BY r.id ASC;`
+
+    db.query(sqlQuery, function (err, results) {
         if (err) {
             console.log(err);
         }
@@ -52,7 +62,20 @@ const viewRoles = () => {
 
 // view all employees
 const viewEmployees = () => {
-    db.query('SELECT * FROM employee', function (err, results) {
+    const sqlQuery =
+        `SELECT e.id,
+        e.first_name,
+        e.last_name,
+        r.title,
+        d.department_name,
+        CONCAT (m.first_name, ' ', m.last_name) AS Manager
+        FROM employee e
+        LEFT JOIN employee m on m.id = e.manager_id
+        JOIN roles r on r.id = e.role_id
+        JOIN department d on d.id = r.department_id
+        ORDER BY e.id ASC;`;
+
+    db.query(sqlQuery, function (err, results) {
         if (err) {
             console.log(err);
         }
