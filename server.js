@@ -2,7 +2,7 @@ const express = require('express');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const figlet = require('figlet');
-const consoleTable = require('console.table');
+const cTable= require('console.table');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3001;
@@ -24,6 +24,13 @@ const db = mysql.createConnection(
     },
     console.log(`Connected to the employees_db database.`)
 );
+
+db.query('SELECT * FROM employee', function (err, results) {
+    if (err) {
+        console.log(err);
+    }
+    console.table(results)
+})
 
 
 // Default response for any other request (Not Found)
