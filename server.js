@@ -88,6 +88,64 @@ const viewEmployees = () => {
 
 // add a role
 
+const addRole = () => {
+    const sqlQuery = 'SELECT * FROM department'
+    db.query(sqlQuery, (err, response) => {
+        if (err) throw err;
+        let deptNamesArray = [];
+        response.forEach((department) => {deptNamesArray.push(department.department_name);});
+        deptNamesArray.push('New Department');
+        inquirer
+          .prompt([
+            {
+              name: 'deptName',
+              type: 'list',
+              message: 'Which department?',
+              choices: deptNamesArray
+            }
+          ])
+          .then((answer) => {
+            if (answer.departmentName === 'New Department') {
+              this.addDepartment();
+            } else {
+              addRoleResume(answer);
+            }
+          });
+  
+        const addRoleResume = (departmentData) => {
+          inquirer
+            .prompt([
+              {
+                name: 'newRole',
+                type: 'input',
+                message: 'What is the name of your new role?',
+              },
+              {
+                name: 'salary',
+                type: 'input',
+                message: 'What is the salary of this new role?',
+              }
+            ])
+            .then((answer) => {
+              const createdRole = answer.newRole;
+              let departmentId;
+  
+              response.forEach((department) => {
+                if (departmentData.deptName === department.department_name) {departmentId = department.id;}
+              });
+  
+              let sql =   `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+              let crit = [createdRole, answer.salary, departmentId];
+  
+              db.query(sql, crit, (err) => {
+                if (err) throw err;
+                viewRoles();
+              });
+            });
+        };
+      });
+    };
+
 // add an employee
 
 const addEmployee = () => {
@@ -151,7 +209,8 @@ const addEmployee = () => {
                                 .then(managerChoice => {
                                     const manager = managerChoice.manager;
                                     crit.push(manager);
-                                    const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                                    const sql = 
+                                    `INSERT INTO employee (first_name, last_name, role_id, manager_id)
                                     VALUES (?, ?, ?, ?)`;
                                     db.query(sql, crit, (error) => {
                                         if (error) throw error;
@@ -171,7 +230,7 @@ const addEmployee = () => {
 // viewDepartments();
 // viewEmployees();
 // viewRoles();
-addEmployee();
+addRole();
 
 
 // Default response for any other request (Not Found)
