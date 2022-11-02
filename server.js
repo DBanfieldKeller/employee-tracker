@@ -86,6 +86,24 @@ const viewEmployees = () => {
 
 // add a department
 
+const addDepartment = () => {
+    inquirer
+        .prompt([
+            {
+                name: 'newDept',
+                type: 'input',
+                message: 'Department name?',
+            }
+        ])
+        .then((answer) => {
+            const sqlQuery = `INSERT INTO department (department_name) VALUES (?)`;
+            db.query(sqlQuery, answer.newDept, (err, response) => {
+                if (err) throw err;
+                viewDepartments();
+            });
+        });
+};
+
 // add a role
 
 const addRole = () => {
@@ -93,58 +111,58 @@ const addRole = () => {
     db.query(sqlQuery, (err, response) => {
         if (err) throw err;
         let deptNamesArray = [];
-        response.forEach((department) => {deptNamesArray.push(department.department_name);});
+        response.forEach((department) => { deptNamesArray.push(department.department_name); });
         deptNamesArray.push('New Department');
         inquirer
-          .prompt([
-            {
-              name: 'deptName',
-              type: 'list',
-              message: 'Which department?',
-              choices: deptNamesArray
-            }
-          ])
-          .then((answer) => {
-            if (answer.departmentName === 'New Department') {
-              this.addDepartment();
-            } else {
-              addRoleResume(answer);
-            }
-          });
-  
-        const addRoleResume = (departmentData) => {
-          inquirer
             .prompt([
-              {
-                name: 'newRole',
-                type: 'input',
-                message: 'What is the name of your new role?',
-              },
-              {
-                name: 'salary',
-                type: 'input',
-                message: 'What is the salary of this new role?',
-              }
+                {
+                    name: 'deptName',
+                    type: 'list',
+                    message: 'Which department?',
+                    choices: deptNamesArray
+                }
             ])
             .then((answer) => {
-              const createdRole = answer.newRole;
-              let departmentId;
-  
-              response.forEach((department) => {
-                if (departmentData.deptName === department.department_name) {departmentId = department.id;}
-              });
-  
-              let sql =   `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-              let crit = [createdRole, answer.salary, departmentId];
-  
-              db.query(sql, crit, (err) => {
-                if (err) throw err;
-                viewRoles();
-              });
+                if (answer.departmentName === 'New Department') {
+                    this.addDepartment();
+                } else {
+                    addRolePart2(answer);
+                }
             });
+
+        const addRolePart2 = (departmentData) => {
+            inquirer
+                .prompt([
+                    {
+                        name: 'newRole',
+                        type: 'input',
+                        message: 'What is the name of your new role?',
+                    },
+                    {
+                        name: 'salary',
+                        type: 'input',
+                        message: 'What is the salary of this new role?',
+                    }
+                ])
+                .then((answer) => {
+                    const newRole = answer.newRole;
+                    let departmentId;
+
+                    response.forEach((department) => {
+                        if (departmentData.deptName === department.department_name) { departmentId = department.id; }
+                    });
+
+                    let sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+                    let crit = [newRole, answer.salary, departmentId];
+
+                    db.query(sql, crit, (err) => {
+                        if (err) throw err;
+                        viewRoles();
+                    });
+                });
         };
-      });
-    };
+    });
+};
 
 // add an employee
 
@@ -209,8 +227,8 @@ const addEmployee = () => {
                                 .then(managerChoice => {
                                     const manager = managerChoice.manager;
                                     crit.push(manager);
-                                    const sql = 
-                                    `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                                    const sql =
+                                        `INSERT INTO employee (first_name, last_name, role_id, manager_id)
                                     VALUES (?, ?, ?, ?)`;
                                     db.query(sql, crit, (error) => {
                                         if (error) throw error;
@@ -230,7 +248,9 @@ const addEmployee = () => {
 // viewDepartments();
 // viewEmployees();
 // viewRoles();
-addRole();
+// addRole();
+// addEmployee();
+addDepartment();
 
 
 // Default response for any other request (Not Found)
